@@ -13,7 +13,9 @@ export default function Home() {
       <nav className="flex border-b mb-6">
         <div className="flex w-full justify-between">
           <div>
-            <h2>Melese Ayichlie</h2>
+            <h2 className="font-serif font-semibold text-sm ">
+              Melese Ayichlie
+            </h2>
           </div>{" "}
           <div className="font-semibold text-amber-600 font-serif">
             <h2>DC Platform Content Creator Assessment Submission</h2>

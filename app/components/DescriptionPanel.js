@@ -16,7 +16,7 @@ const DescriptionPanel = () => {
             meleayi2021@gmail.com
           </a>{" "}
           | <strong>Phone:</strong>{" "}
-          <span className="italic">+1 (234) 567-8901</span> |{" "}
+          <span className="italic">+(251) 930-707-411</span> |{" "}
           <a
             href="https://meleseayichlie.netlify.app/"
             alt="Mele"

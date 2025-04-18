@@ -11,7 +11,7 @@ import QuestionAnswer from "./components/QuestionAnswer";
 export default function Home() {
   const [initialList, setInitialList] = useState([3, 5, 7, 9, 10]);
   const [activeTab, setActiveTab] = useState("demo");
-  const [selectedMethod, setSelectedMethod] = useState("iterative");
+  const [selectedMethod, setSelectedMethod] = useState("visualization");
   const [showModal, setShowModal] = useState(false);
   const [key, setKey] = useState(0);
   const [quizResult, setQuizResult] = useState(null);
@@ -97,6 +97,16 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
             <div className="flex gap-2 flex-wrap justify-center max-w-[900px] mx-auto">
               <button
+                onClick={() => setSelectedMethod("visualization")}
+                className={`px-4 py-2 rounded-lg ${
+                  selectedMethod === "visualization"
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200"
+                }`}
+              >
+                Drag & Drop Method
+              </button>
+              <button
                 onClick={() => setSelectedMethod("iterative")}
                 className={`px-4 py-2 rounded-lg ${
                   selectedMethod === "iterative"
@@ -116,16 +126,7 @@ export default function Home() {
               >
                 Recursive Method
               </button>
-              <button
-                onClick={() => setSelectedMethod("visualization")}
-                className={`px-4 py-2 rounded-lg ${
-                  selectedMethod === "visualization"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200"
-                }`}
-              >
-                Drag & Drop Method
-              </button>
+
               <button
                 onClick={() => setSelectedMethod("questionanswering")}
                 className={`px-4 py-2 rounded-lg ${

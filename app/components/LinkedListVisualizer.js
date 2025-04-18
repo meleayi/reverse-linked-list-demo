@@ -7,67 +7,93 @@ import Controls from "./Controls";
 import { FiCheckCircle, FiInfo } from "react-icons/fi";
 
 const DraggableNode = ({ value, index, moveNode, isActive }) => {
-  const [{ isDragging }, drag] = useDrag(() => ({
+  const ref = useRef(null);
+
+  const [{ isDragging }, drag] = useDrag({
     type: "NODE",
     item: { index },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
-  }));
+  });
 
-  const [{ isOver }, drop] = useDrop(() => ({
+  const [{ isOver }, drop] = useDrop({
     accept: "NODE",
-    drop: (item) => {
-      if (item.index !== index) {
-        moveNode(item.index, index);
-      }
+    hover: (item, monitor) => {
+      if (!ref.current) return;
+      const dragIndex = item.index;
+      const hoverIndex = index;
+
+      // Don't replace items with themselves
+      if (dragIndex === hoverIndex) return;
+
+      // Determine rectangle on screen
+      const hoverBoundingRect = ref.current?.getBoundingClientRect();
+      // Get vertical middle
+      const hoverMiddleY =
+        (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+      // Determine mouse position
+      const clientOffset = monitor.getClientOffset();
+      // Get pixels to the top
+      const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+
+      // Only perform the move when the mouse has crossed half of the items height
+      // When dragging downwards, only move when the cursor is below 50%
+      // When dragging upwards, only move when the cursor is above 50%
+      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) return;
+      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) return;
+
+      // Time to actually perform the action
+      moveNode(dragIndex, hoverIndex);
+      // Note: we're mutating the monitor item here!
+      // Generally it's better to avoid mutations,
+      // but it's good here for the sake of performance
+      // to avoid expensive index searches.
+      item.index = hoverIndex;
     },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
     }),
-  }));
+  });
+
+  drag(drop(ref));
 
   return (
-    <div ref={drop} className="relative">
-      <motion.div
-        ref={drag}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{
-          opacity: isDragging ? 0.6 : 1,
-          y: 0,
-          scale: isOver ? 1.05 : 1,
-          boxShadow: isActive ? "0 0 0 2px rgba(59, 130, 246, 0.5)" : "none",
-        }}
-        className={`p-3 rounded-lg text-center min-w-12 cursor-move ${
-          isDragging ? "bg-purple-300" : "bg-green-100"
-        }`}
-      >
-        {value}
-      </motion.div>
-    </div>
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{
+        opacity: isDragging ? 0.6 : 1,
+        y: 0,
+        scale: isOver ? 1.05 : 1,
+        boxShadow: isActive ? "0 0 0 2px rgba(59, 130, 246, 0.5)" : "none",
+      }}
+      className={`p-3 rounded-lg text-center min-w-12 cursor-move ${
+        isDragging ? "bg-purple-300" : "bg-green-100"
+      }`}
+    >
+      {value}
+    </motion.div>
   );
 };
 
 const LinkedListVisualizer = ({ initialList, list, setList }) => {
-  // const originalList = initialList;
-
   const [originalList] = useState(() => [...initialList]);
-
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(initialList.length - 1);
   const [isReversing, setIsReversing] = useState(false);
-  const [speed, setSpeed] = useState(1); // 1 second per step
+  const [speed, setSpeed] = useState(1);
   const [temp, setTemp] = useState(null);
   const [step, setStep] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showHint, setShowHint] = useState(true);
   const timerRef = useRef(null);
 
-  const moveNode = useCallback((fromIndex, toIndex) => {
+  const moveNode = useCallback((dragIndex, hoverIndex) => {
     setList((prevList) => {
       const newList = [...prevList];
-      const [removed] = newList.splice(fromIndex, 1);
-      newList.splice(toIndex, 0, removed);
+      const [removed] = newList.splice(dragIndex, 1);
+      newList.splice(hoverIndex, 0, removed);
       return newList;
     });
   }, []);
@@ -127,18 +153,16 @@ const LinkedListVisualizer = ({ initialList, list, setList }) => {
 
     timerRef.current = setTimeout(() => {
       reverseStep();
-    }, speed * 1000); // Convert seconds to milliseconds
+    }, speed * 1000);
 
     return () => clearTimeout(timerRef.current);
   }, [isReversing, step, speed, reverseStep]);
 
-  // Check if list is reversed
   const isReversed =
     JSON.stringify(list) === JSON.stringify([...initialList].reverse());
 
   return (
     <div className="max-w-4xl mx-auto relative">
-      {/* Success Notification */}
       <AnimatePresence>
         {showSuccess && (
           <motion.div
@@ -153,7 +177,6 @@ const LinkedListVisualizer = ({ initialList, list, setList }) => {
         )}
       </AnimatePresence>
 
-      {/* Hint Box */}
       <AnimatePresence>
         {showHint && !isReversed && (
           <motion.div
@@ -166,10 +189,14 @@ const LinkedListVisualizer = ({ initialList, list, setList }) => {
             <div>
               <h3 className="font-medium text-blue-800 mb-1">
                 Try This First!
+                <br />
+                This is a list for demo and introduction purposes.{" "}
               </h3>
               <p className="text-blue-700">
-                Drag and drop nodes in the Reversed List section to manually
-                reverse the list.
+                In the "Reversed List" section, you can manually reverse the
+                order of the list items by using the drag-and-drop feature. This
+                interactive tool helps you understand how reversing a list
+                works, similar to how you might do it on your phone.{" "}
               </p>
             </div>
             <button
@@ -183,11 +210,10 @@ const LinkedListVisualizer = ({ initialList, list, setList }) => {
         )}
       </AnimatePresence>
 
-      <div className="flex justify-between mb-12">
-        {/* Original List */}
-        <div className="w-1/2 pr-4">
+      <div className="flex flex-col md:flex-row justify-between mb-12 gap-4">
+        <div className="w-full md:w-1/2">
           <h2 className="text-xl font-semibold mb-4">Original List</h2>
-          <div className="flex  flex-wrap items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1">
             {originalList.map((val, i) => (
               <div
                 key={`original-${i}`}
@@ -199,8 +225,7 @@ const LinkedListVisualizer = ({ initialList, list, setList }) => {
           </div>
         </div>
 
-        {/* Reversed List - Draggable */}
-        <div className="w-1/2 pl-4 flex-wrap justify-between">
+        <div className="w-full md:w-1/2">
           <h2 className="text-xl font-semibold mb-4">Reversed List</h2>
           <div className="flex flex-wrap items-center gap-1">
             {list.map((val, i) => (
@@ -216,12 +241,11 @@ const LinkedListVisualizer = ({ initialList, list, setList }) => {
         </div>
       </div>
 
-      {/* Current State Visualization */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-8">
         <h2 className="text-xl font-semibold mb-4">Reversal Process</h2>
-        <div className="flex justify-center gap-8 mb-6">
+        <div className="flex flex-col md:flex-row justify-center gap-8 mb-6">
           <div className="text-center">
-            <div className="font-bold">Start Pointer</div>
+            <div className="font-bold">Start List</div>
             <div className="text-2xl">→</div>
             <div
               className={`p-2 rounded-full w-10 h-10 flex items-center justify-center mx-auto ${
@@ -244,7 +268,7 @@ const LinkedListVisualizer = ({ initialList, list, setList }) => {
           </div>
 
           <div className="text-center">
-            <div className="font-bold">End Pointer</div>
+            <div className="font-bold">End List</div>
             <div className="text-2xl">←</div>
             <div
               className={`p-2 rounded-full w-10 h-10 flex items-center justify-center mx-auto ${
@@ -256,7 +280,7 @@ const LinkedListVisualizer = ({ initialList, list, setList }) => {
           </div>
         </div>
 
-        <div className="flex justify-center  flex-wrap items-center gap-1">
+        <div className="flex flex-wrap justify-center items-center gap-1">
           {list.map((val, i) => (
             <motion.div
               key={`process-${i}`}

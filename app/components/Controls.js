@@ -1,66 +1,57 @@
 "use client";
-import { useState, useEffect } from "react";
+import { FiPause, FiPlay, FiStepForward } from "react-icons/fi";
 
 export default function Controls({
-  isReversing,
+  isRunning,
+  isPaused,
   speed,
   onStart,
   onReset,
+  onPause,
   onSpeedChange,
 }) {
-  const [localSpeed, setLocalSpeed] = useState(speed);
-
-  // Update parent speed state after user stops dragging
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onSpeedChange(localSpeed);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [localSpeed]);
-
   return (
-    <div className="bg-gray-100 p-4 rounded-lg">
-      <div className="flex justify-center gap-4 mb-4">
-        <button
-          onClick={onStart}
-          disabled={isReversing}
-          className={`px-6 py-2 rounded-lg ${
-            isReversing ? "bg-gray-400" : "bg-green-500 hover:bg-green-600"
-          } text-white font-medium transition-colors`}
-        >
-          {isReversing ? "Reversing..." : "Start Reversal"}
-        </button>
-
-        <button
-          onClick={onReset}
-          className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors"
-        >
-          Reset
-        </button>
-      </div>
-
-      <div className="max-w-md mx-auto">
-        <div className="flex justify-between mb-1">
-          <span className="text-sm font-medium text-gray-700">
-            Step Duration
-          </span>
-          <span className="text-sm font-medium text-gray-700">
-            {localSpeed}s
-          </span>
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="flex justify-between items-center gap-4 flex-col md:flex-row">
+        <div className="flex gap-4">
+          <button
+            onClick={onStart}
+            className={`px-4 py-2 rounded-lg ${
+              isRunning
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-blue-500 hover:bg-blue-600"
+            } text-white`}
+          >
+            {isRunning ? "Stop" : "Start"}
+          </button>
+          <button
+            onClick={onReset}
+            className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+          >
+            Reset
+          </button>
+          {isRunning && (
+            <button
+              onClick={onPause}
+              className="px-4 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white flex items-center gap-2"
+            >
+              {isPaused ? <FiPlay /> : <FiPause />}
+              {isPaused ? "Resume" : "Pause"}
+            </button>
+          )}
         </div>
-        <input
-          type="range"
-          min="0.5"
-          max="3"
-          step="0.1"
-          value={localSpeed}
-          onChange={(e) => setLocalSpeed(parseFloat(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-        />
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>0.5s</span>
-          <span>3s</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Speed:</span>
+          <select
+            value={speed}
+            onChange={(e) => onSpeedChange(Number(e.target.value))}
+            className="border rounded p-1"
+          >
+            <option value={0.5}>Slow</option>
+            <option value={1}>Normal</option>
+            <option value={1.5}>Fast</option>
+            <option value={2}>Very Fast</option>
+          </select>
         </div>
       </div>
     </div>

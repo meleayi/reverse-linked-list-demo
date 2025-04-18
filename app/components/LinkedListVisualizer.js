@@ -49,8 +49,12 @@ const DraggableNode = ({ value, index, moveNode, isActive }) => {
 };
 
 const LinkedListVisualizer = ({ initialList, list, setList }) => {
+  // const originalList = initialList;
+
+  const [originalList] = useState(() => [...initialList]);
+
   const [start, setStart] = useState(0);
-  const [end, setEnd] = useState(list.length - 1);
+  const [end, setEnd] = useState(initialList.length - 1);
   const [isReversing, setIsReversing] = useState(false);
   const [speed, setSpeed] = useState(1); // 1 second per step
   const [temp, setTemp] = useState(null);
@@ -183,8 +187,8 @@ const LinkedListVisualizer = ({ initialList, list, setList }) => {
         {/* Original List */}
         <div className="w-1/2 pr-4">
           <h2 className="text-xl font-semibold mb-4">Original List</h2>
-          <div className="flex gap-2">
-            {initialList.map((val, i) => (
+          <div className="flex  flex-wrap items-center gap-1">
+            {originalList.map((val, i) => (
               <div
                 key={`original-${i}`}
                 className="bg-gray-200 p-3 rounded-lg text-center min-w-12"
@@ -196,9 +200,9 @@ const LinkedListVisualizer = ({ initialList, list, setList }) => {
         </div>
 
         {/* Reversed List - Draggable */}
-        <div className="w-1/2 pl-4">
+        <div className="w-1/2 pl-4 flex-wrap justify-between">
           <h2 className="text-xl font-semibold mb-4">Reversed List</h2>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-1">
             {list.map((val, i) => (
               <DraggableNode
                 key={`reversed-${i}`}
@@ -252,7 +256,7 @@ const LinkedListVisualizer = ({ initialList, list, setList }) => {
           </div>
         </div>
 
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center  flex-wrap items-center gap-1">
           {list.map((val, i) => (
             <motion.div
               key={`process-${i}`}
